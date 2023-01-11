@@ -1,57 +1,61 @@
-#! /usr/bin/env node
-const { program } = require('commander')
-const fa = require("@glif/filecoin-address");
-const util = require("util");
-const { network } = require("hardhat");
-const request = util.promisify(require("request"));
-const ethers = require("ethers");
+const Web3 = require("web3");
+const {ToHex,ToWei} = require('web3-utils')
+const program = require("commander");
+const web3 = new Web3("ws://localhost:8546"); 
+//connecting to the local node
 
-// const list = require('./commands/list')
-// const add = require('./commands/add')
-// const markDone = require('./commands/markDone')
+const contractAddress = "0x.........."; // replace with your contract's address
+const abi = [{}]; // replace with your contract's ABI
+
+// create a contract object
+const contract = new web3.eth.Contract(abi, contractAddress);
 
 program
-  .command('list')
-  .description('List all the TODO tasks')
-  .action(async () => {
-    const DEPLOYER_PRIVATE_KEY = network.config.accounts[0]
+  .version("0.0.1")
+  .description("DeltaDataDAO CLI")
 
-    function hexToBytes(hex) {
-      for (var bytes = [], c = 0; c < hex.length; c += 2)
-        bytes.push(parseInt(hex.substr(c, 2), 16));
-      return new Uint8Array(bytes);
-    }
-
-    async function callRpc(method, params) {
-      var options = {
-        method: "POST",
-        url: "https://wallaby.node.glif.io/rpc/v0",
-        // url: "http://localhost:1234/rpc/v0",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: method,
-          params: params,
-          id: 1,
-        }),
-      };
-      const res = await request(options);
-      return JSON.parse(res.body).result;
-    }
-
-    const deployer = new ethers.Wallet(DEPLOYER_PRIVATE_KEY);
-
-
-    const pubKey = hexToBytes(deployer.publicKey.slice(2));
-
-    const priorityFee = await callRpc("eth_maxPriorityFeePerGas");
-
-    const f4Address = fa.newDelegatedEthAddress(deployer.address).toString();
-    const nonce = await callRpc("Filecoin.MpoolGetNonce", [f4Address]);
-    console.log("Ethereum address (this addresss should work for most tools):", deployer.address);
-    console.log("f4address (informational only):", f4Address);
+program
+  .command("proposeCid <assignedStorageProvider> <cidRaw> <size> <expiryAt> <reward>")
+  .alias("p")
+  .description("Propose new CID")
+  .action(async (assignedStorageProvider, cidRaw, size, expiryAt, reward) => {
+    // Prepare input data
+    expiryAt = Math.floor(expiryAt/1000)
+    reward = ToWei(reward,"ether")
+    // Call the proposeCid function and pass in the input data
+    const receipt = await contract.methods.proposeCid(assignedStorageProvider,cidRaw,size,expiryAt,reward).send({
+        from:web3.eth.defaultAccount,
+        gas:3000000
+    });
+    console.log("Proposal created:", receipt);
   });
 
-program.parse()
+program
+  .command("voteCid <proposalId> <vote>")
+  .alias("v")
+  .description("Vote on a proposal")
+  .action(async (proposalId, vote) => {
+    // Prepare input data
+    vote = vote == true? true : false // vote should be either true or false
+    // Call the voteCid function and pass in the input data
+    const receipt = await contract.methods.voteCid(proposalId,vote).send({
+        from:web3.eth.defaultAccount,
+        gas:3000000
+    });
+    console.log("Vote casted:", receipt);
+  });
+
+program
+  .command("endVoting <proposalId>")
+  .alias("e")
+  .description("End voting for a proposal")
+  .action(async (proposalId) => {
+    // Call the endVoting function 
+    const receipt = await contract.methods.endVoting(proposalId).send({
+        from:web3.eth.defaultAccount,
+        gas:3000000
+    });
+    console.log("Voting ended:", receipt);
+  });
+
+program.parse(process.argv);

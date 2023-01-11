@@ -1,9 +1,9 @@
 {
-  "name": "FVM-Hardhat-Kit",
+  "name": "Delta-Data-Dao",
   "version": "1.0.0",
   "description": "",
   "bin": {
-    "delta": "./index.js"
+    "delta-dao": "./demo.js"
   },
   "scripts": {
     "compile": "hardhat compile",

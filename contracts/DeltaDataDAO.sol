@@ -8,9 +8,16 @@ import "./filecoinMockAPIs/MarketAPI.sol";
 contract DeltaDataDAO{
         address owner;
         mapping (uint256 => Proposal) public proposals;
+        mapping (address => Member) public members;
         mapping (bytes => address) public deals;
-
         uint256 public proposalsLength;
+
+        event ProposalCreated(uint256 proposalId);
+        event VoteCast(uint256 proposalId, address member, bool vote);
+        event VotingEnded(uint256 proposalId, address winner);
+        event DealPublished(bytes cidRaw, address storageProvider);
+        event MemberAdded(address member, uint256 stake, uint256 expiryAt);
+        event StakeWithdrawn(address member, uint256 stake);
 
         constructor () {
                 owner = msg.sender;
@@ -78,7 +85,25 @@ contract DeltaDataDAO{
 
         function retrieveReward() public {}
 
-        function addMember() public {}
+        function addMember(address member, uint256 stake, uint256 expiryAt) public {
+                require(members[member] == Member({}), "Member already exists");
+                require(stake > 0, "Stake must be greater than zero");
 
-        function withdrawStake() public {}
+                members[member].stake = stake;
+                members[member].expiryAt = expiryAt;
+                emit MemberAdded(member, stake, expiryAt);
+        }
+
+
+        function withdrawStake(address member) public {
+                require(msg.sender == member, "Only member can withdraw stake");
+                require(now < members[member].expiryAt, "Membership has expired");
+                require(members[member].stake > 0, "Stake is zero");
+
+                uint256 stake = members[member].stake;
+                members[member].stake = 0;
+                msg.sender.transfer(stake);
+
+                emit StakeWithdrawn(member, stake);
+        }
 }

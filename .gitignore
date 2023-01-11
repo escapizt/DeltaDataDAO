@@ -1,6 +1,8 @@
 # vscode
 .vscode
 
+demo.js
+
 # hardhat
 artifacts
 cache
