@@ -62,6 +62,7 @@ contract DeltaDataDAO{
                 Proposal storage proposal = proposals[proposalId];
                 require(now > proposal.expiryAt, "Voting period has not expired yet");
                 // Determine winner
+                // make sure this is local
                 address winner;
                 if (proposal.upvoteCount > proposal.downvoteCount) {
                         winner = proposal.assignedStorageProvider;
