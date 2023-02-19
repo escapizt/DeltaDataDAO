@@ -1,12 +1,11 @@
+// This file can be removed
 const fa = require("@glif/filecoin-address");
 const util = require("util");
 const request = util.promisify(require("request"));
 
 task("get-address", "Gets Filecoin f4 address and corresponding Ethereum address.")
   .setAction(async (taskArgs) => {
-
     const DEPLOYER_PRIVATE_KEY = network.config.accounts[0]
-
     function hexToBytes(hex) {
       for (var bytes = [], c = 0; c < hex.length; c += 2)
         bytes.push(parseInt(hex.substr(c, 2), 16));
