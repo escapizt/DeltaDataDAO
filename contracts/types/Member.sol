@@ -5,3 +5,9 @@ struct Member {
   uint256 stake;
   uint expiryAt;
 }
+
+struct Admin {
+  address adminAddress;
+  uint addedOn;
+  uint expiryAt;
+}
