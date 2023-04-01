@@ -10,6 +10,7 @@ const DEPLOYER_PRIVATE_KEY = network.config.accounts[0]
 
 function hexToBytes(hex) {
     for (var bytes = [], c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16))
+    console.log("Bytes = ", hex)
     return new Uint8Array(bytes)
 }
 
@@ -38,17 +39,17 @@ module.exports = async ({ deployments }) => {
     const { deploy } = deployments
 
     const priorityFee = await callRpc("eth_maxPriorityFeePerGas")
-    
+
     // Wraps Hardhat's deploy, logging errors to console.
     const deployLogError = async (title, obj) => {
-        let ret;
+        let ret
         try {
-            ret = await deploy(title, obj);
+            ret = await deploy(title, obj)
         } catch (error) {
             console.log(error.toString())
             process.exit(1)
         }
-        return ret;
+        return ret
     }
 
     console.log("Wallet Ethereum Address:", deployer.address)
